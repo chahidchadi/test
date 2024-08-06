@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload PDF</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        input[type="file"] {
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px;
+            background: #28a745;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Upload PDF</h1>
+        <form id="uploadForm">
+            <input type="file" name="pdf" accept=".pdf" required>
+            <button type="submit">Upload</button>
+        </form>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const formData = new FormData();
+            const fileInput = document.querySelector('input[type="file"]');
+            formData.append('pdf', fileInput.files[0]);
+
+            try {
+                const response = await fetch('/upload_pdf', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                const messageDiv = document.getElementById('message');
+                if (response.ok) {
+                    messageDiv.innerHTML = `<p style="color: green;">${result.message}</p>`;
+                } else {
+                    messageDiv.innerHTML = `<p style="color: red;">${result.error}</p>`;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+    </script>
+</body>
+</html>
