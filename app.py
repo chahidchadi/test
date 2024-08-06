@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file
+from flask import Flask, request, send_file
 import os
 from werkzeug.utils import secure_filename
 
@@ -25,7 +25,25 @@ def index():
             return send_file(filepath, as_attachment=True)
         else:
             return 'Invalid file type. Please upload a PDF file.'
-    return render_template('index.html')
+    
+    # Serve the HTML content directly
+    return '''
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>PDF Uploader</title>
+    </head>
+    <body>
+        <h1>Upload a PDF File</h1>
+        <form method="POST" enctype="multipart/form-data">
+            <input type="file" name="file" accept=".pdf">
+            <input type="submit" value="Upload">
+        </form>
+    </body>
+    </html>
+    '''
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
