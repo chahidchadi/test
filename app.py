@@ -1,36 +1,32 @@
-from flask import Flask, request, jsonify, render_template
-from werkzeug.utils import secure_filename
+from flask import Flask, render_template, request, send_file
 import os
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max-limit
 
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            return 'No file part'
+        file = request.files['file']
+        if file.filename == '':
+            return 'No selected file'
+        if file and file.filename.endswith('.pdf'):
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+            return send_file(filepath, as_attachment=True)
+        else:
+            return 'Invalid file type. Please upload a PDF file.'
     return render_template('index.html')
 
-@app.route('/upload_pdf', methods=['POST'])
-def upload_pdf():
-    if 'pdf' not in request.files:
-        return jsonify({'error': 'No PDF file uploaded'}), 400
-
-    file = request.files['pdf']
-
-    if file.filename == '':
-        return jsonify({'error': 'No selected file'}), 400
-
-    if file and file.filename.lower().endswith('.pdf'):
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
-        return jsonify({'message': 'PDF uploaded successfully', 'filename': filename})
-    else:
-        return jsonify({'error': 'Invalid file type. Please upload a PDF.'}), 400
-
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
