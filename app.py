@@ -12,22 +12,24 @@ if not os.path.exists(UPLOAD_FOLDER):
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    message = ""
     if request.method == 'POST':
         if 'file' not in request.files:
-            return 'No file part'
-        file = request.files['file']
-        if file.filename == '':
-            return 'No selected file'
-        if file and file.filename.endswith('.pdf'):
-            filename = secure_filename(file.filename)
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(filepath)
-            return send_file(filepath, as_attachment=True)
+            message = 'No file part'
         else:
-            return 'Invalid file type. Please upload a PDF file.'
+            file = request.files['file']
+            if file.filename == '':
+                message = 'No selected file'
+            elif file and file.filename.endswith('.pdf'):
+                filename = secure_filename(file.filename)
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(filepath)
+                message = f'File {filename} was successfully uploaded!'
+            else:
+                message = 'Invalid file type. Please upload a PDF file.'
     
-    # Serve the HTML content directly
-    return '''
+    # Serve the HTML content directly, including any message
+    return f'''
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -41,10 +43,15 @@ def index():
             <input type="file" name="file" accept=".pdf">
             <input type="submit" value="Upload">
         </form>
+        <p>{message}</p>
     </body>
     </html>
     '''
 
+@app.route('/download/<filename>')
+def download_file(filename):
+    return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename), as_attachment=True)
+
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port)
