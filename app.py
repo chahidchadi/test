@@ -34,18 +34,9 @@ def upload_pdf():
         filename = secure_filename(file.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
-        try:
-            file_size = os.path.getsize(filepath)
-            return jsonify({
-                'message': 'PDF uploaded successfully',
-                'filename': filename,
-                'file_size': file_size
-            })
-        except Exception as e:
-            print(f"Error processing PDF: {str(e)}")
-            return jsonify({'error': str(e)}), 500
+        return jsonify({'message': 'PDF uploaded successfully', 'filename': filename})
     else:
         return jsonify({'error': 'Invalid file type. Please upload a PDF.'}), 400
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=8080)
